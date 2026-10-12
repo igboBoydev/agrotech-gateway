@@ -1,0 +1,22 @@
+services:
+  gateway:
+    build: .
+    image: webflux-grpc-gateway:latest
+    container_name: webflux-grpc-gateway
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      # Spring relaxed binding: grpc.auth.host / grpc.auth.port
+      GRPC_AUTH_HOST: ${GRPC_AUTH_HOST:-host.docker.internal}
+      GRPC_AUTH_PORT: ${GRPC_AUTH_PORT:-8080}
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # needed on Linux; Docker Desktop on Mac has it built in
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8081/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
